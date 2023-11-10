@@ -6,15 +6,28 @@ import { Button } from "./ui/button";
 import { Cloud, File } from "lucide-react";
 import Dropzone from "react-dropzone";
 import { Progress } from "./ui/progress";
-
-
+import { useUploadThing } from "@/lib/uploadthing";
+import { useToast } from "./ui/use-toast";
+import { trpc } from "@/app/_trpc/client";
+import { useRouter } from "next/navigation";
 
 const UploadDropzone = () => {
+  const router = useRouter();
 
   const [isUploading, setIsUploading] = useState<boolean>(true);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
- 
 
+  const { toast } = useToast();
+
+  const { startUpload } = useUploadThing("pdfUploader");
+
+  const { mutate: startPolling } = trpc.getFile.useMutation({
+    onSuccess: (file) => {
+      router.push(`/dashboard/${file.id}`);
+    },
+    retry: true,
+    retryDelay: 500,
+  });
   const startSimulatedProgress = () => {
     setUploadProgress(0);
 
@@ -39,11 +52,33 @@ const UploadDropzone = () => {
 
         const progressInterval = startSimulatedProgress();
 
-        // handle file upload
+        // handle file uploading progress
+        const res = await startUpload(acceptedFile);
 
-        await new Promise((resolve, reject) =>setTimeout(resolve, 15000))
+        if (!res) {
+          return toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: "There was a problem with your request.",
+          });
+        }
+
+        const [fileResponse] = res;
+
+        const key = fileResponse?.key;
+
+        if (!key) {
+          return toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: "There was a problem with your request.",
+          });
+        }
+
         clearInterval(progressInterval);
-        setUploadProgress(100)
+        setUploadProgress(100);
+
+        startPolling({ key });
       }}
     >
       {({ getRootProps, getInputProps, acceptedFiles }) => (
@@ -62,9 +97,7 @@ const UploadDropzone = () => {
                   <span className="font-semibold">Click to upload</span> or drag
                   and drop
                 </p>
-                <p className="text-xs text-zinc-500">
-                  PDF (up to 4 MB)
-                </p>
+                <p className="text-xs text-zinc-500">PDF (up to 4 MB)</p>
               </div>
               {acceptedFiles && acceptedFiles[0] ? (
                 <div className="max-w-xs bg-white flex items-center rounded-md overflow-hidden outline outline-[1px] outline-zinc-200 divide-x divide-zinc-200">
@@ -84,6 +117,12 @@ const UploadDropzone = () => {
                   />
                 </div>
               ) : null}
+              <input
+                {...getInputProps()}
+                type="file"
+                id="dropzone-file"
+                className="hidden"
+              />
             </label>
           </div>
         </div>
