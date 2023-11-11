@@ -5,7 +5,13 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { useToast } from "./ui/use-toast";
-import { ChevronDown, ChevronUp, Loader2, RotateCw, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  RotateCw,
+  Search,
+} from "lucide-react";
 
 import { useResizeDetector } from "react-resize-detector";
 import { Button } from "./ui/button";
@@ -15,10 +21,14 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import SimpleBar from "simplebar-react";
 import PdfFullscreen from "./PdfFullscreen";
-
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -33,17 +43,18 @@ export const PdfRenderer = ({ url }: PdfRendererProps) => {
   const [currPage, setCurrPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
   const [rotation, setRotation] = useState<number>(0);
+
   const [renderedScale, setRenderedScale] = useState<number | null>(null);
 
-    const isLoading = renderedScale !== scale;
+  const isLoading = renderedScale !== scale;
 
-    const CustomPageValidator = z.object({
-      page: z
-        .string()
-        .refine((num) => Number(num) > 0 && Number(num) <= numPages!),
-    });
+  const CustomPageValidator = z.object({
+    page: z
+      .string()
+      .refine((num) => Number(num) > 0 && Number(num) <= numPages!),
+  });
 
-    type TCustomPageValidator = z.infer<typeof CustomPageValidator>;
+  type TCustomPageValidator = z.infer<typeof CustomPageValidator>;
 
   const {
     register,
@@ -59,10 +70,10 @@ export const PdfRenderer = ({ url }: PdfRendererProps) => {
 
   const { width, height, ref } = useResizeDetector();
 
-   const handlePageSubmit = ({ page }: TCustomPageValidator) => {
-     setCurrPage(Number(page));
-     setValue("page", String(page));
-   };
+  const handlePageSubmit = ({ page }: TCustomPageValidator) => {
+    setCurrPage(Number(page));
+    setValue("page", String(page));
+  };
 
   return (
     <div className="w-full bg-white rounded-md shadow flex flex-col items-center">
@@ -168,11 +179,29 @@ export const PdfRenderer = ({ url }: PdfRendererProps) => {
               file={url}
               className="max-h-full"
             >
+              {isLoading && renderedScale ? (
+                <Page
+                  width={width ? width : 1}
+                  pageNumber={currPage}
+                  scale={scale}
+                  rotate={rotation}
+                  key={"@" + renderedScale}
+                />
+              ) : null}
+
               <Page
+                className={cn(isLoading ? "hidden" : "")}
                 width={width ? width : 1}
                 pageNumber={currPage}
                 scale={scale}
                 rotate={rotation}
+                key={"@" + scale}
+                loading={
+                  <div className="flex justify-center">
+                    <Loader2 className="my-24 h-6 w-6 animate-spin" />
+                  </div>
+                }
+                onRenderSuccess={() => setRenderedScale(scale)}
               />
             </Document>
           </div>
