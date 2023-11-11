@@ -6,6 +6,9 @@ import { cn } from '@/lib/utils'
 import Providers from '@/components/Providers'
 import { Toaster } from '@/components/ui/toaster'
 
+import "simplebar-react/dist/simplebar.min.css";
+
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
