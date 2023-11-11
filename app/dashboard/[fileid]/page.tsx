@@ -2,7 +2,6 @@ import ChatWrapper from "@/components/ChatWrapper"
 import { PdfRenderer } from "@/components/PdfRenderer"
 import { db } from "@/db"
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/dist/server"
-import { fi } from "date-fns/locale"
 import { notFound, redirect } from "next/navigation"
 
 interface PageProps {
