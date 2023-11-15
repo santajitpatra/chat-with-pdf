@@ -5,10 +5,12 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { PineconeStore } from "langchain/vectorstores/pinecone";
-// import { pinecone } from "@/lib/pinecone";
-import { getPineconeClient } from "@/lib/pinecone";
+import { getPineconeIndex, initializePinecone } from "@/lib/pinecone";
 
 const f = createUploadthing();
+
+// Initialize Pinecone when the server starts
+initializePinecone();
 
 export const ourFileRouter = {
   pdfUploader: f({ pdf: { maxFileSize: "4MB" } })
@@ -45,9 +47,7 @@ export const ourFileRouter = {
         const pagesAmt = pageLevelDocs.length;
 
         // vectorize and index entire document
-        const pinecone = await getPineconeClient();
-        const pineconeIndex = pinecone.Index("pdf");
-
+        const pineconeIndex = getPineconeIndex("pdf");
 
         const embeddings = new OpenAIEmbeddings({
           openAIApiKey: process.env.OPENAI_API_KEY,

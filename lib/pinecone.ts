@@ -1,33 +1,25 @@
-import { PineconeClient } from "@pinecone-database/pinecone";
+import { Pinecone } from "@pinecone-database/pinecone";
 
-export const getPineconeClient = async () => {
-  const client = new PineconeClient();
+const apiKey = process.env.PINECONE_API_KEY;
+const environment = process.env.PINECONE_ENVIRONMENT;
 
-  await client.init({
-    apiKey: process.env.PINECONE_API_KEY!,
-    environment: "gcp-starter",
-  });
+if (!apiKey || !environment) {
+  throw new Error("Pinecone API key or environment is not defined");
+}
 
-  return client;
+const pinecone: any = new Pinecone();
+const initializePinecone = async () => {
+  try {
+    await pinecone.init({
+      environment: "gcp-starter",
+      apiKey: apiKey,
+    });
+    console.log("Pinecone initialized successfully");
+  } catch (error) {
+    console.error("Error initializing Pinecone:", error);
+  }
 };
-
- 
-  
-
-
-
-// import { Pinecone } from "@pinecone-database/pinecone";
-
-// // Check if environment variables are defined
-// const apiKey = process.env.PINECONE_API_KEY;
-// const environment = process.env.PINECONE_ENVIRONMENT;
-
-// if (!apiKey || !environment) {
-//   throw new Error("Pinecone API key or environment is not defined");
-// }
-
-// // Create Pinecone instance
-// export const pinecone = new Pinecone({
-//   environment: "gcp-starter",
-//   apiKey: apiKey,
-// });
+const getPineconeIndex = (indexName: any) => {
+  return pinecone.Index(indexName);
+};
+export { initializePinecone, getPineconeIndex };
