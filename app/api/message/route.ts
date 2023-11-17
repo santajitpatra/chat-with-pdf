@@ -1,15 +1,13 @@
 import { db } from "@/db";
 import { openai } from "@/lib/openai";
-import { getPineconeIndex, initializePinecone } from "@/lib/pinecone";
 import { SendMessageValidator } from "@/lib/validators/SendMessageValidator";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { PineconeStore } from "langchain/vectorstores/pinecone";
 import { NextRequest } from "next/server";
 import { OpenAIStream, StreamingTextResponse } from "ai";
+import { getPineconeClient } from "@/lib/pinecone";
 
-// Initialize Pinecone when the server starts
-initializePinecone();
 
 export const POST = async (req: NextRequest) => {
   const body = await req.json();
@@ -47,14 +45,15 @@ export const POST = async (req: NextRequest) => {
     openAIApiKey: process.env.OPENAI_API_KEY,
   });
 
-  const pineconeIndex = getPineconeIndex("pdf");
+ const pinecone = await getPineconeClient();
+ const pineconeIndex = pinecone.Index("pdf");
 
-  const vectorstore = await PineconeStore.fromExistingIndex(embeddings, {
-    pineconeIndex,
-    namespace: file.id,
-  });
+   const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
+     pineconeIndex,
+     namespace: file.id,
+   });
 
-  const results = await vectorstore.similaritySearch(message, 4);
+  const results = await vectorStore.similaritySearch(message, 4);
 
   const prevMessages = await db.message.findMany({
     where: {

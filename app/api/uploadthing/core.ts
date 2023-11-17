@@ -5,12 +5,9 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { PineconeStore } from "langchain/vectorstores/pinecone";
-import { getPineconeIndex, initializePinecone } from "@/lib/pinecone";
+import { getPineconeClient } from "@/lib/pinecone";
 
 const f = createUploadthing();
-
-// Initialize Pinecone when the server starts
-initializePinecone();
 
 export const ourFileRouter = {
   pdfUploader: f({ pdf: { maxFileSize: "4MB" } })
@@ -18,13 +15,10 @@ export const ourFileRouter = {
       const { getUser } = getKindeServerSession();
       const user = await getUser();
 
-      if (!user || !user.id) {
-        throw new Error("UNAUTHORIZED");
-      }
+      if (!user || !user.id) throw new Error("UNAUTHORIZED");
 
       return { userId: user.id };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
+    }).onUploadComplete(async ({ metadata, file }) => {
       const createdFile = await db.file.create({
         data: {
           key: file.key,
@@ -47,16 +41,18 @@ export const ourFileRouter = {
         const pagesAmt = pageLevelDocs.length;
 
         // vectorize and index entire document
-        const pineconeIndex = getPineconeIndex("pdf");
+        const pinecone = await getPineconeClient();
+        const pineconeIndex = pinecone.Index("chatpdf");
 
         const embeddings = new OpenAIEmbeddings({
           openAIApiKey: process.env.OPENAI_API_KEY,
-        });
+        })
 
         await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
           pineconeIndex,
           namespace: createdFile.id,
-        });
+        }
+        );
 
         await db.file.update({
           data: {
