@@ -35,7 +35,9 @@ const Page = async ({ params }: PageProps) => {
         <div className="flex-1 xl:flex">
           <div className="px-4 py-6 sm:px-6 lg:pl-8 xl:flex-1 xl:pl-6">
             {/* Main area */}
-            <PdfRenderer url={file.url} />
+            <PdfRenderer
+              url={`https://uploadthing-prod.s3.us-west-2.amazonaws.com/${file.key}`}
+            />
           </div>
         </div>
 
