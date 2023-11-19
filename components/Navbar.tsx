@@ -19,10 +19,10 @@ const Navbar = async () => {
       <MaxWidthWrapper>
         <div className="flex h-14 items-center justify-between border-b border-zinc-200">
           <Link href="/" className="flex z-40 font-semibold">
-            <span>quill.</span>
+            <span>Chat With Pdf</span>
           </Link>
 
-          {/* <MobileNav isAuth={!!user} /> */}
+          <MobileNav isAuth={!!user} />
 
           <div className="hidden items-center space-x-4 sm:flex">
             {!user ? (
