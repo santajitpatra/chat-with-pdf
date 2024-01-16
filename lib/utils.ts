@@ -42,7 +42,7 @@ export function constructMetadata({
       title,
       description,
       images: [image],
-      creator: "@joshtriedcoding",
+      creator: "@santajitpatra",
     },
     icons,
     metadataBase: new URL("https://chatwith-pdf.vercel.app"),
